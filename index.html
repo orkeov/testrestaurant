@@ -1,1 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Burgers</title>
+  <meta name="description" content="Smash burgers, crispy fries, and thick shakes. Order online or reserve a table." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
+  <!-- ============================================================
+    SUPABASE — swap in your credentials when ready
+    1. Uncomment the CDN script tag below
+    2. Fill in SUPABASE_URL and SUPABASE_ANON_KEY
+    3. Uncomment window.db = supabase.createClient(...)
+    4. Delete the "DEMO MODE" stub below that
+  ============================================================ -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
+
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --ink:        #0F0E0C;
+      --paper:      #F7F3EC;
+      --paper-dark: #EDE8DF;
+      --mustard:    #E8A020;
+      --mustard-dk: #C07A08;
+      --red:        #C0392B;
+      --white:      #FFFFFF;
+      --muted:      #7A7165;
+      --border:     #DDD8CE;
+
+      --ff-display: 'Bebas Neue', Impact, sans-serif;
+      --ff-body:    'DM Sans', system-ui, sans-serif;
+
+      --r-sm: 6px;
+      --r-md: 12px;
+      --r-lg: 20px;
+      --shadow: 0 2px 16px rgba(15,14,12,.10);
+      --shadow-lg: 0 8px 40px rgba(15,14,12,.16);
+    }
+
+    /* ── RESET ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--ff-body);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── UTILITIES ───────────────────────────────────────────── */
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+    .section { padding: 6rem 0; }
+    .eyebrow {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+    .tag {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: .2rem .65rem;
+      border-radius: 999px;
+      border: 1.5px solid currentColor;
+    }
+
+    /* ── BUTTONS ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-family: var(--ff-body);
+      font-size: .92rem;
+      font-weight: 600;
+      padding: .78rem 1.7rem;
+      border-radius: var(--r-sm);
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: background .18s, color .18s, border-color .18s, transform .1s, box-shadow .18s;
+      white-space: nowrap;
+    }
+    .btn:hover  { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary { background: var(--mustard); color: var(--ink); border-color: var(--mustard); }
+    .btn-primary:hover { background: var(--mustard-dk); border-color: var(--mustard-dk); }
+
+    .btn-dark    { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn-dark:hover { background: #2a2825; }
+
+    .btn-outline { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-outline:hover { background: var(--ink); color: var(--paper); }
+
+    .btn-lg { padding: 1rem 2.2rem; font-size: 1rem; border-radius: var(--r-sm); }
+
+    /* ── NAV ─────────────────────────────────────────────────── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(247,243,236,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 1rem;
+    }
+    .nav__logo {
+      font-family: var(--ff-display);
+      font-size: 1.9rem;
+      letter-spacing: .03em;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .nav__logo span { color: var(--mustard); }
+    .nav__links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav__links a {
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color .15s;
+    }
+    .nav__links a:hover { color: var(--ink); }
+    .nav__actions { display: flex; gap: .75rem; align-items: center; }
+    .nav__mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: .25rem;
+    }
+    /* mobile drawer */
+    .nav__drawer {
+      display: none;
+      flex-direction: column;
+      gap: .25rem;
+      padding: .75rem 1.5rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: var(--paper);
+    }
+    .nav__drawer a {
+      padding: .6rem 0;
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      font-size: .95rem;
+    }
+    .nav__drawer a:last-child { border: none; }
+    .nav__drawer.open { display: flex; }
+
+    /* ── HERO ────────────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 0;
+      overflow: hidden;
+    }
+    .hero__left {
+      padding: 5rem 4rem 5rem 0;
+    }
+    .hero__headline {
+      font-family: var(--ff-display);
+      font-size: clamp(5rem, 10vw, 9rem);
+      line-height: .93;
+      letter-spacing: .01em;
+      margin-bottom: 1.5rem;
+    }
+    .hero__headline .line-accent { color: var(--mustard); }
+    .hero__sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 400px;
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+    .hero__cta { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    .hero__scroll-hint {
+      margin-top: 3.5rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+    .hero__scroll-line {
+      width: 40px;
+      height: 1px;
+      background: var(--muted);
+    }
+
+    /* Hero right — bold diagonal price callout */
+    .hero__right {
+      height: 100%;
+      min-height: calc(100vh - 64px);
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero__right-bg-text {
+      font-family: var(--ff-display);
+      font-size: clamp(120px, 22vw, 220px);
+      color: rgba(255,255,255,.04);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+    }
+    .hero__price-cards {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      width: 100%;
+      padding: 0;
+    }
+    .price-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2rem 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      transition: background .2s;
+    }
+    .price-card:hover { background: rgba(255,255,255,.04); }
+    .price-card__left { display: flex; align-items: center; gap: 1.1rem; }
+    .price-card__emoji {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+    .price-card__name {
+      font-family: var(--ff-display);
+      font-size: 1.8rem;
+      letter-spacing: .03em;
+      color: var(--white);
+      line-height: 1;
+    }
+    .price-card__desc {
+      font-size: .78rem;
+      color: rgba(255,255,255,.4);
+      margin-top: .2rem;
+    }
+    .price-card__price {
+      font-family: var(--ff-display);
+      font-size: 2.6rem;
+      color: var(--mustard);
+      letter-spacing: .02em;
+      line-height: 1;
+    }
+    .price-card__add {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,.2);
+      color: var(--white);
+      border-radius: var(--r-sm);
+      font-family: var(--ff-body);
+      font-size: .78rem;
+      font-weight: 600;
+      padding: .4rem .9rem;
+      cursor: pointer;
+      margin-left: 1.2rem;
+      transition: background .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .price-card__add:hover { background: var(--mustard); border-color: var(--mustard); color: var(--ink); }
+
+    /* ── PERKS STRIP ─────────────────────────────────────────── */
+    .perks {
+      background: var(--mustard);
+      padding: 0;
+      overflow: hidden;
+    }
+    .perks__track {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .perks__item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1.1rem 2.5rem;
+      border-right: 1px solid rgba(15,14,12,.15);
+      white-space: nowrap;
+      font-size: .82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+    .perks__item span:first-child { font-size: 1.2rem; }
+
+    /* ── MENU SECTION ────────────────────────────────────────── */
+    .menu-section { background: var(--paper); }
+    .menu-section__header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .menu-section__header h2 {
+      font-family: var(--ff-display);
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      line-height: 1;
+      letter-spacing: .02em;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .menu-card {
+      background: var(--white);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      transition: transform .22s, box-shadow .22s;
+    }
+    .menu-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+    .menu-card__img {
+      background: var(--paper-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5.5rem;
+      padding: 2.5rem 1rem;
+      line-height: 1;
+      position: relative;
+    }
+    .menu-card__badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--mustard);
+      color: var(--ink);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: .22rem .6rem;
+      border-radius: 4px;
+    }
+    .menu-card__body {
+      padding: 1.4rem 1.5rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .menu-card__name {
+      font-family: var(--ff-display);
+      font-size: 1.7rem;
+      letter-spacing: .03em;
+      line-height: 1;
+      margin-bottom: .5rem;
+    }
+    .menu-card__desc {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+      margin-bottom: 1.4rem;
+    }
+    .menu-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+    }
+    .menu-card__price {
+      font-family: var(--ff-display);
+      font-size: 2rem;
+      color: var(--ink);
+      letter-spacing: .02em;
+      line-height: 1;
+    }
+    .menu-card__btn {
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: var(--r-sm);
+      font-family: var(--ff-body);
+      font-size: .82rem;
+      font-weight: 600;
+      padding: .55rem 1.1rem;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+    .menu-card__btn:hover { background: var(--mustard); color: var(--ink); }
+    .menu-card__btn:active { transform: scale(.97); }
+
+    /* ── CTA SPLIT SECTION ───────────────────────────────────── */
+    .cta-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .cta-panel {
+      padding: 5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+    .cta-panel--dark { background: var(--ink); color: var(--white); }
+    .cta-panel--light { background: var(--paper-dark); color: var(--ink); }
+    .cta-panel__icon { font-size: 3rem; line-height: 1; }
+    .cta-panel__label {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      opacity: .5;
+    }
+    .cta-panel h2 {
+      font-family: var(--ff-display);
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      letter-spacing: .02em;
+      line-height: 1.05;
+    }
+    .cta-panel p {
+      font-size: .95rem;
+      line-height: 1.7;
+      opacity: .7;
+      max-width: 380px;
+    }
+    .btn-white { background: var(--white); color: var(--ink); border-color: var(--white); }
+    .btn-white:hover { background: var(--mustard); border-color: var(--mustard); }
+
+    /* ── HOURS / INFO STRIP ──────────────────────────────────── */
+    .info-strip {
+      background: var(--paper-dark);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .info-strip__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      divide-x: 1px solid var(--border);
+    }
+    .info-cell {
+      padding: 3rem 2rem;
+      border-right: 1px solid var(--border);
+    }
+    .info-cell:last-child { border-right: none; }
+    .info-cell__icon { font-size: 1.6rem; margin-bottom: .75rem; }
+    .info-cell__label {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+      margin-bottom: .5rem;
+    }
+    .info-cell__value { font-size: .95rem; font-weight: 500; line-height: 1.7; }
+
+    /* ── TOAST ───────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(1rem);
+      background: var(--ink);
+      color: var(--white);
+      font-family: var(--ff-body);
+      font-size: .88rem;
+      font-weight: 500;
+      padding: .65rem 1.4rem;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+      z-index: 999;
+      white-space: nowrap;
+      border: 1.5px solid var(--mustard);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── FOOTER ──────────────────────────────────────────────── */
+    .footer {
+      background: var(--ink);
+      color: rgba(247,243,236,.55);
+      padding: 3rem 0 2rem;
+    }
+    .footer__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer__logo {
+      font-family: var(--ff-display);
+      font-size: 1.6rem;
+      color: var(--white);
+      letter-spacing: .03em;
+    }
+    .footer__logo span { color: var(--mustard); }
+    .footer__links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .footer__links a { font-size: .85rem; color: rgba(247,243,236,.5); transition: color .15s; }
+    .footer__links a:hover { color: var(--mustard); }
+    .footer__copy { font-size: .78rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,.08); }
+    .footer__demo {
+      display: inline-block;
+      background: rgba(232,160,32,.18);
+      border: 1px solid rgba(232,160,32,.4);
+      color: var(--mustard);
+      font-size: .67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: .18rem .55rem;
+      border-radius: 4px;
+      margin-left: .5rem;
+    }
+
+    /* ── MODAL ───────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,14,12,.65);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white);
+      border-radius: var(--r-lg);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal__close {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: var(--paper-dark);
+      border: none;
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: background .15s, color .15s;
+    }
+    .modal__close:hover { background: var(--ink); color: var(--white); }
+    .modal__eyebrow {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--mustard);
+      margin-bottom: .4rem;
+    }
+    .modal h2 {
+      font-family: var(--ff-display);
+      font-size: 2.2rem;
+      letter-spacing: .02em;
+      margin-bottom: 1.5rem;
+    }
+    .form-row { margin-bottom: 1rem; }
+    .form-row label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: .35rem;
+    }
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+      width: 100%;
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--ink);
+      padding: .7rem .9rem;
+      font-family: var(--ff-body);
+      font-size: .92rem;
+      transition: border-color .15s;
+    }
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus { outline: none; border-color: var(--mustard); }
+    .form-row textarea { resize: vertical; min-height: 80px; }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-success {
+      margin-top: 1rem;
+      padding: .8rem 1rem;
+      background: #eafaf1;
+      border: 1px solid #2ecc71;
+      border-radius: var(--r-sm);
+      color: #1a7a45;
+      font-size: .88rem;
+      display: none;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero__right { min-height: 0; padding: 3rem 0; }
+      .hero__left { padding: 3.5rem 0 2.5rem; }
+      .hero__headline { font-size: clamp(4rem, 14vw, 6.5rem); }
+      .cta-split { grid-template-columns: 1fr; }
+      .cta-panel { padding: 3.5rem 2rem; }
+      .menu-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+      .info-strip__grid { grid-template-columns: 1fr; }
+      .info-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .info-cell:last-child { border-bottom: none; }
+      .nav__links { display: none; }
+      .nav__actions .btn { display: none; }
+      .nav__mobile-toggle { display: flex; }
+    }
+    @media (max-width: 560px) {
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .hero__cta { flex-direction: column; align-items: stretch; }
+      .hero__cta .btn { justify-content: center; }
+      .perks__track { flex-wrap: wrap; }
+      .perks__item { border-right: none; border-bottom: 1px solid rgba(15,14,12,.12); width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════
+       NAV
+  ══════════════════════════════════════════ -->
+  <nav class="nav" role="navigation" aria-label="Main">
+    <div class="wrap">
+      <div class="nav__inner">
+        <a href="#" class="nav__logo">Test<span>Burgers</span></a>
+        <ul class="nav__links" role="list">
+          <li><a href="#menu">Menu</a></li>
+          <li><a href="#reserve">Reservations</a></li>
+          <li><a href="#order">Order Online</a></li>
+          <li><a href="#hours">Hours</a></li>
+        </ul>
+        <div class="nav__actions">
+          <button class="btn btn-outline" onclick="openModal('reservation-modal')">Reserve a table</button>
+          <button class="btn btn-primary" onclick="openModal('order-modal')">Order online</button>
+        </div>
+        <button class="nav__mobile-toggle" aria-label="Open menu" onclick="toggleDrawer()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="nav__drawer" id="nav-drawer">
+      <a href="#menu" onclick="closeDrawer()">Menu</a>
+      <a href="#reserve" onclick="closeDrawer()">Reservations</a>
+      <a href="#order" onclick="closeDrawer()">Order Online</a>
+      <a href="#hours" onclick="closeDrawer()">Hours</a>
+      <button class="btn btn-outline" style="margin-top:.5rem;" onclick="closeDrawer(); openModal('reservation-modal')">Reserve a table</button>
+      <button class="btn btn-primary" style="margin-top:.5rem;" onclick="closeDrawer(); openModal('order-modal')">Order online</button>
+    </div>
+  </nav>
+
+
+  <!-- ══════════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════ -->
+  <section class="hero" id="home">
+    <div class="wrap" style="padding-right: 0; display: contents;">
+      <div class="hero__left wrap" style="padding-right: 3rem;">
+        <div class="eyebrow">Tempe, AZ · Open Now</div>
+        <h1 class="hero__headline">
+          Smash<br/>
+          <span class="line-accent">Burgers</span><br/>
+          Done&nbsp;Right.
+        </h1>
+        <p class="hero__sub">
+          Fresh beef, two-minute smash, no shortcuts.
+          Fries that stay crispy. Shakes thick enough to need a spoon.
+        </p>
+        <div class="hero__cta">
+          <button class="btn btn-primary btn-lg" onclick="openModal('order-modal')">
+            Order online
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 8h10M9 4l4 4-4 4"/>
+            </svg>
+          </button>
+          <button class="btn btn-outline btn-lg" onclick="openModal('reservation-modal')">Reserve a table</button>
+        </div>
+        <div class="hero__scroll-hint">
+          <div class="hero__scroll-line"></div>
+          Scroll to menu
+        </div>
+      </div>
+
+      <!-- Right panel: live price cards -->
+      <div class="hero__right">
+        <div class="hero__right-bg-text" aria-hidden="true">BURGER</div>
+        <div class="hero__price-cards">
+          <!-- DATA-ID attributes match the menu data below — easy to wire to Supabase -->
+          <div class="price-card" data-id="burger">
+            <div class="price-card__left">
+              <div class="price-card__emoji">🍔</div>
+              <div>
+                <div class="price-card__name">Classic Burger</div>
+                <div class="price-card__desc">smash · brioche · secret sauce</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;">
+              <div class="price-card__price">$5.99</div>
+              <button class="price-card__add" onclick="addToCart('burger','Classic Burger',5.99,'🍔')">+ Add</button>
+            </div>
+          </div>
+          <div class="price-card" data-id="fries">
+            <div class="price-card__left">
+              <div class="price-card__emoji">🍟</div>
+              <div>
+                <div class="price-card__name">Crispy Fries</div>
+                <div class="price-card__desc">double-fried · sea salt · paprika</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;">
+              <div class="price-card__price">$3.99</div>
+              <button class="price-card__add" onclick="addToCart('fries','Crispy Fries',3.99,'🍟')">+ Add</button>
+            </div>
+          </div>
+          <div class="price-card" data-id="shake">
+            <div class="price-card__left">
+              <div class="price-card__emoji">🥤</div>
+              <div>
+                <div class="price-card__name">Milkshake</div>
+                <div class="price-card__desc">vanilla · chocolate · strawberry</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;">
+              <div class="price-card__price">$1.99</div>
+              <button class="price-card__add" onclick="addToCart('shake','Milkshake',1.99,'🥤')">+ Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       PERKS STRIP
+  ══════════════════════════════════════════ -->
+  <div class="perks" aria-hidden="true">
+    <div class="perks__track">
+      <div class="perks__item"><span>🥩</span><span>Never frozen</span></div>
+      <div class="perks__item"><span>⚡</span><span>Ready in 10 min</span></div>
+      <div class="perks__item"><span>🧂</span><span>Real ingredients</span></div>
+      <div class="perks__item"><span>🛵</span><span>Pickup & delivery</span></div>
+      <div class="perks__item"><span>📅</span><span>Book a table online</span></div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       MENU SECTION
+  ══════════════════════════════════════════ -->
+  <section class="section menu-section" id="menu">
+    <div class="wrap">
+      <div class="menu-section__header">
+        <div>
+          <div class="eyebrow">What we make</div>
+          <h2>The Menu</h2>
+        </div>
+        <button class="btn btn-dark" onclick="openModal('order-modal')">Start your order →</button>
+      </div>
+
+      <!--
+        DATA NOTE: These cards are rendered from the JS `MENU_ITEMS` array below.
+        To pull from Supabase instead, replace loadMenu() with a Supabase fetch.
+      -->
+      <div class="menu-grid" id="menu-grid" role="list"></div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       CTA SPLIT — RESERVE / ORDER
+  ══════════════════════════════════════════ -->
+  <div class="cta-split" id="reserve">
+    <div class="cta-panel cta-panel--dark">
+      <div class="cta-panel__icon">📅</div>
+      <div class="cta-panel__label">Dine in</div>
+      <h2>Reserve a table</h2>
+      <p>Pick your date and party size. We'll hold your spot — no phone call needed.</p>
+      <button class="btn btn-white btn-lg" onclick="openModal('reservation-modal')">Make a reservation</button>
+    </div>
+    <div class="cta-panel cta-panel--light" id="order">
+      <div class="cta-panel__icon">🛵</div>
+      <div class="cta-panel__label">Pickup & Delivery</div>
+      <h2>Order online</h2>
+      <p>Skip the line. Build your order and we'll have it hot and ready when you arrive.</p>
+      <button class="btn btn-dark btn-lg" onclick="openModal('order-modal')">Order now</button>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       HOURS / INFO
+  ══════════════════════════════════════════ -->
+  <section class="info-strip" id="hours">
+    <div class="wrap">
+      <div class="info-strip__grid">
+        <div class="info-cell">
+          <div class="info-cell__icon">🕐</div>
+          <div class="info-cell__label">Hours</div>
+          <div class="info-cell__value">
+            Mon–Fri: 11am – 10pm<br/>
+            Sat–Sun: 10am – 11pm
+          </div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell__icon">📍</div>
+          <div class="info-cell__label">Location</div>
+          <div class="info-cell__value">
+            123 Demo Street<br/>
+            Tempe, AZ 85281
+          </div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell__icon">📞</div>
+          <div class="info-cell__label">Contact</div>
+          <div class="info-cell__value">
+            (480) 555-0100<br/>
+            <a href="mailto:hello@testburgers.com" style="color:var(--mustard-dk);">hello@testburgers.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__inner">
+        <div class="footer__logo">Test<span>Burgers</span></div>
+        <div class="footer__links">
+          <a href="#menu">Menu</a>
+          <a href="#reserve">Reserve</a>
+          <a href="#order">Order Online</a>
+          <a href="#hours">Hours</a>
+        </div>
+      </div>
+      <div class="footer__copy">
+        © 2026 Test Burgers · All rights reserved
+        <span class="footer__demo">Demo Site</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ══════════════════════════════════════════
+       TOAST
+  ══════════════════════════════════════════ -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+
+  <!-- ══════════════════════════════════════════
+       MODAL — RESERVATION
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="reservation-modal" role="dialog" aria-modal="true" aria-label="Make a reservation" onclick="overlayClose(event, 'reservation-modal')">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal('reservation-modal')" aria-label="Close">✕</button>
+      <div class="modal__eyebrow">Dine In</div>
+      <h2>Reserve a table</h2>
+      <form id="reservation-form" onsubmit="submitReservation(event)">
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label for="res_name">Full name</label>
+            <input type="text" id="res_name" name="res_name" placeholder="Jane Smith" required />
+          </div>
+          <div class="form-row">
+            <label for="res_email">Email</label>
+            <input type="email" id="res_email" name="res_email" placeholder="jane@email.com" required />
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label for="res_date">Date</label>
+            <input type="date" id="res_date" name="res_date" required />
+          </div>
+          <div class="form-row">
+            <label for="res_time">Time</label>
+            <select id="res_time" name="res_time" required>
+              <option value="">Pick a time…</option>
+              <option>11:00 AM</option><option>11:30 AM</option>
+              <option>12:00 PM</option><option>12:30 PM</option>
+              <option>1:00 PM</option><option>1:30 PM</option>
+              <option>6:00 PM</option><option>6:30 PM</option>
+              <option>7:00 PM</option><option>7:30 PM</option>
+              <option>8:00 PM</option><option>8:30 PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="res_party">Party size</label>
+          <select id="res_party" name="res_party" required>
+            <option value="">How many guests?</option>
+            <option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8+</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="res_notes">Special requests (optional)</label>
+          <textarea id="res_notes" name="res_notes" placeholder="Allergies, birthday, high chair…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
+          Confirm reservation
+        </button>
+        <div class="form-success" id="res-success">
+          You're all set! We'll send a confirmation to your email.
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       MODAL — ORDER ONLINE
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="order-modal" role="dialog" aria-modal="true" aria-label="Order online" onclick="overlayClose(event, 'order-modal')">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModal('order-modal')" aria-label="Close">✕</button>
+      <div class="modal__eyebrow">Pickup & Delivery</div>
+      <h2>Your order</h2>
+
+      <!-- Cart display -->
+      <div id="cart-display" style="margin-bottom:1.25rem; min-height:60px;"></div>
+
+      <form id="order-form" onsubmit="submitOrder(event)">
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label for="ord_name">Full name</label>
+            <input type="text" id="ord_name" name="ord_name" placeholder="Jane Smith" required />
+          </div>
+          <div class="form-row">
+            <label for="ord_email">Email</label>
+            <input type="email" id="ord_email" name="ord_email" placeholder="jane@email.com" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="ord_type">Order type</label>
+          <select id="ord_type" name="ord_type" onchange="toggleAddress()">
+            <option value="pickup">Pickup</option>
+            <option value="delivery">Delivery</option>
+          </select>
+        </div>
+        <div class="form-row" id="address-row" style="display:none;">
+          <label for="ord_address">Delivery address</label>
+          <input type="text" id="ord_address" name="ord_address" placeholder="123 Main St, Tempe AZ" />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.25rem;">
+          Place order
+        </button>
+        <div class="form-success" id="ord-success"></div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════════ -->
+  <script>
+  /* ──────────────────────────────────────────
+     SUPABASE CONFIG
+     ──────────────────────────────────────────
+     When you're ready to go live:
+     1. Add the Supabase CDN <script> in <head>
+     2. Replace the placeholder strings below
+     3. Uncomment `window.db = supabase.createClient(...)`
+     4. Delete the DEMO MODE object
+  ────────────────────────────────────────── */
+  const SUPABASE_URL      = 'https://YOUR_PROJECT.supabase.co';  // ← replace
+  const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';                     // ← replace
+
+  // window.db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); // ← uncomment
+
+  // DEMO MODE — remove once Supabase is connected
+  window.db = {
+    from: (table) => ({
+      insert: async (payload) => {
+        console.log('[DEMO] INSERT →', table, payload);
+        return { error: null };
+      }
+    })
+  };
+
+  /* ──────────────────────────────────────────
+     MENU DATA
+     To pull from Supabase, replace this array
+     with: const { data: MENU_ITEMS } = await
+       window.db.from('menu_items').select('*')
+
+     Supabase table: menu_items
+       id TEXT, name TEXT, desc TEXT,
+       price NUMERIC, emoji TEXT, badge TEXT
+  ────────────────────────────────────────── */
+  const MENU_ITEMS = [
+    {
+      id: 'burger',
+      emoji: '🍔',
+      name: 'Classic Burger',
+      desc: 'Smash-style beef patty on a toasted brioche bun. American cheese, bread & butter pickles, diced white onion, and our house sauce.',
+      price: 5.99,
+      badge: 'Best Seller'
+    },
+    {
+      id: 'fries',
+      emoji: '🍟',
+      name: 'Crispy Fries',
+      desc: 'Double-fried until shatteringly crispy. Tossed in sea salt and smoked paprika. Served with choice of dip.',
+      price: 3.99,
+      badge: null
+    },
+    {
+      id: 'shake',
+      emoji: '🥤',
+      name: 'Milkshake',
+      desc: 'Hand-spun with real ice cream. Vanilla, chocolate, or strawberry — thick enough to stand a straw upright.',
+      price: 1.99,
+      badge: 'Fan Fave'
+    }
+  ];
+
+  /* ── Render menu cards ─────────────────── */
+  function loadMenu() {
+    const grid = document.getElementById('menu-grid');
+    if (!grid) return;
+    grid.innerHTML = MENU_ITEMS.map(item => `
+      <div class="menu-card" role="listitem">
+        <div class="menu-card__img">
+          ${item.emoji}
+          ${item.badge ? `<span class="menu-card__badge">${item.badge}</span>` : ''}
+        </div>
+        <div class="menu-card__body">
+          <div class="menu-card__name">${item.name}</div>
+          <div class="menu-card__desc">${item.desc}</div>
+          <div class="menu-card__footer">
+            <div class="menu-card__price">$${item.price.toFixed(2)}</div>
+            <button class="menu-card__btn" onclick="addToCart('${item.id}','${item.name}',${item.price},'${item.emoji}')">
+              Add to order
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ── Cart ──────────────────────────────── */
+  const cart = {}; // { id: { name, price, emoji, qty } }
+
+  function addToCart(id, name, price, emoji) {
+    if (cart[id]) {
+      cart[id].qty++;
+    } else {
+      cart[id] = { name, price, emoji, qty: 1 };
+    }
+    renderCartDisplay();
+    toast(`${emoji} ${name} added!`);
+  }
+
+  function removeFromCart(id) {
+    delete cart[id];
+    renderCartDisplay();
+  }
+
+  function cartTotal() {
+    return Object.values(cart).reduce((s, i) => s + i.price * i.qty, 0);
+  }
+
+  function renderCartDisplay() {
+    const el = document.getElementById('cart-display');
+    if (!el) return;
+    const entries = Object.entries(cart);
+    if (entries.length === 0) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:.88rem;">No items yet — add from the menu or the price list.</p>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="border:1.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;">
+        ${entries.map(([id, item]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:.65rem 1rem;border-bottom:1px solid var(--border);font-size:.88rem;">
+            <span>${item.emoji} ${item.name} × ${item.qty}</span>
+            <span style="display:flex;align-items:center;gap:.75rem;">
+              <strong>$${(item.price * item.qty).toFixed(2)}</strong>
+              <button onclick="removeFromCart('${id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:.8rem;line-height:1;" title="Remove">✕</button>
+            </span>
+          </div>
+        `).join('')}
+        <div style="display:flex;justify-content:space-between;padding:.7rem 1rem;font-weight:700;background:var(--paper);">
+          <span>Total</span>
+          <span style="color:var(--mustard-dk);">$${cartTotal().toFixed(2)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ── Form handlers ─────────────────────── */
+
+  // RESERVATION
+  // TO CONNECT SUPABASE: uncomment the db.from() line, remove console.log
+  async function submitReservation(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn  = form.querySelector('[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'Reserving…';
+
+    const payload = {
+      name:       form.res_name.value.trim(),
+      email:      form.res_email.value.trim(),
+      date:       form.res_date.value,
+      time:       form.res_time.value,
+      party_size: form.res_party.value,
+      notes:      form.res_notes.value.trim(),
+    };
+
+    const { error } = await window.db.from('reservations').insert(payload);
+    // Replace the line above with nothing once Supabase is connected —
+    // the same call works with the real client.
+
+    btn.disabled = false;
+    btn.textContent = 'Confirm reservation';
+
+    if (error) { alert('Something went wrong: ' + error.message); return; }
+
+    document.getElementById('res-success').style.display = 'block';
+    form.reset();
+    setTimeout(() => { document.getElementById('res-success').style.display = 'none'; closeModal('reservation-modal'); }, 2800);
+  }
+
+  // ORDER
+  // TO CONNECT SUPABASE: same pattern — the db.from() call is already structured for it
+  async function submitOrder(e) {
+    e.preventDefault();
+    const form = e.target;
+
+    if (Object.keys(cart).length === 0) {
+      alert('Add at least one item before placing your order.');
+      return;
+    }
+
+    const btn = form.querySelector('[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'Placing order…';
+
+    const payload = {
+      customer: form.ord_name.value.trim(),
+      email:    form.ord_email.value.trim(),
+      type:     form.ord_type.value,
+      address:  form.ord_address ? form.ord_address.value.trim() : '',
+      items:    Object.values(cart),
+      total:    cartTotal(),
+    };
+
+    const { error } = await window.db.from('orders').insert(payload);
+
+    btn.disabled = false;
+    btn.textContent = 'Place order';
+
+    if (error) { alert('Something went wrong: ' + error.message); return; }
+
+    const successEl = document.getElementById('ord-success');
+    successEl.textContent = `Order received! Total: $${payload.total.toFixed(2)} — confirmation going to ${payload.email}.`;
+    successEl.style.display = 'block';
+    Object.keys(cart).forEach(k => delete cart[k]);
+    renderCartDisplay();
+    form.reset();
+    setTimeout(() => { successEl.style.display = 'none'; closeModal('order-modal'); }, 3000);
+  }
+
+  /* ── Modal helpers ─────────────────────── */
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (id === 'order-modal') renderCartDisplay();
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function overlayClose(e, id) {
+    if (e.target === e.currentTarget) closeModal(id);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(m => {
+        m.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    }
+  });
+
+  /* ── Nav helpers ───────────────────────── */
+  function toggleDrawer() {
+    document.getElementById('nav-drawer').classList.toggle('open');
+  }
+  function closeDrawer() {
+    document.getElementById('nav-drawer').classList.remove('open');
+  }
+
+  /* ── Address toggle ────────────────────── */
+  function toggleAddress() {
+    const type = document.getElementById('ord_type').value;
+    document.getElementById('address-row').style.display = type === 'delivery' ? 'block' : 'none';
+  }
+
+  /* ── Toast ─────────────────────────────── */
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  /* ── Set min date for reservation ─────── */
+  document.getElementById('res_date').min = new Date().toISOString().split('T')[0];
+
+  /* ── Init ──────────────────────────────── */
+  loadMenu();
+  </script>
+
+</body>
+</html>
